@@ -21,12 +21,22 @@
 
 import PackageDescription
 
+let dependencies = [
+  ("https://github.com/fang-ling/foundation-framework", "snapshot")
+]
+
 let package = Package(
   name: "animation-framework",
   products: [
     .library(name: "AnimationFramework", targets: ["AnimationFramework"])
   ],
+  dependencies: dependencies.map({ .package(url: $0.0, branch: $0.1) }),
   targets: [
-    .target(name: "AnimationFramework")
+    .target(
+      name: "AnimationFramework",
+      dependencies: [
+        .product(name: "FoundationFramework", package: "foundation-framework")
+      ],
+    )
   ]
 )

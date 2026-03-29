@@ -1,0 +1,216 @@
+//
+//  Layer.swift
+//  animation-framework
+//
+//  Created by Fang Ling on 2026/3/29.
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+import FoundationFramework
+
+/// An object that manages image-based content and allows you to perform
+/// animations on that content.
+///
+/// Layers are often used to provide the backing store for views but can also be
+/// used without a view to display content. A layer's main job is to manage the
+/// visual content that you provide but the layer itself has visual attributes
+/// that can be set, such as a background color, border, and shadow. In addition
+/// to managing visual content, the layer also maintains information about the
+/// geometry of its content (such as its position, size, and transform) that is
+/// used to present that content onscreen. Modifying the properties of the layer
+/// is how you initiate animations on the layer's content or geometry. A layer
+/// object encapsulates the duration and pacing of a layer and its animations by
+/// adopting the ``MediaTiming`` protocol, which defines the layer's timing
+/// information.
+///
+/// If the layer object was created by a view, the view typically assigns itself
+/// as the layer's delegate automatically, and you should not change that
+/// relationship. For layers you create yourself, you can assign a ``delegate``
+/// object and use that object to provide the contents of the layer dynamically
+/// and perform other tasks. A layer may also have a layout manager object
+/// (assigned to the ``layoutManager`` property) to manage the layout of
+/// subviews separately.
+@available(macOS 13.3.0, *)
+public class Layer {
+  public var id = UUID()
+
+  /// The layer's delegate object.
+  ///
+  /// You can use a delegate object to provide the layer's contents, handle the
+  /// layout of any sublayers, and provide custom actions in response to
+  /// layer-related changes. The object you assign to this property should
+  /// implement one or more of the methods of the ``LayerDelegate`` informal
+  /// protocol.
+  ///
+  /// If the layer is associated with a ``View`` object, this property must be
+  /// set to the view that owns the layer.
+  public weak var delegate: (any LayerDelegate)?
+
+  /// A Boolean value indicating whether the layer has been marked as needing an
+  /// update.
+  public var needsDisplay = true
+
+  /// An array containing the layer's sublayers.
+  ///
+  /// The sublayers are listed in back to front order. The default value of this
+  /// property is `nil`.
+  ///
+  /// > Important: When setting the sublayers property to an array populated
+  ///   with layer objects, each layer in the array must not already have a
+  ///   superlayer—that is, its superlayer property must currently be `nil`.
+  var sublayers: [Layer]? // TODO: Use FoundationFramework's array
+
+  /// The superlayer of the layer.
+  ///
+  /// The superlayer manages the layout of its sublayers.
+  var superlayer: Layer?
+
+  /// The layer's frame rectangle.
+  ///
+  /// The frame rectangle is position and size of the layer specified in the
+  /// superlayer's coordinate space. For layers, the frame rectangle is a
+  /// computed property that is derived from the values in the ``bounds``,
+  /// ``anchorPoint`` and ``position`` properties. When you assign a new value
+  /// to this property, the layer changes its ``position`` and ``bounds``
+  /// properties to match the rectangle you specified. The values of each
+  /// coordinate in the rectangle are measured in pixels.
+  ///
+  /// Do not set the frame if the ``transform`` property applies a rotation
+  /// transform that is not a multiple of 90 degrees.
+  ///
+  /// > Note: The frame property is not directly animatable. Instead you should
+  ///   animate the appropriate combination of the ``bounds``, ``anchorPoint``
+  ///   and ``position`` properties to achieve the desired result.
+  public var frame: Rectangle {
+    get {
+      Rectangle(
+        x: position.x - bounds.size.width * anchorPoint.x,
+        y: position.y - bounds.size.height * anchorPoint.y,
+        width: bounds.size.width,
+        height: bounds.size.height
+      )
+    }
+    set {
+      bounds = Rectangle(origin: .zero, size: newValue.size)
+      position = Point(
+        x: newValue.origin.x + newValue.size.width * anchorPoint.x,
+        y: newValue.origin.y + newValue.size.height * anchorPoint.y
+      )
+    }
+  }
+
+  /// The layer's bounds rectangle. Animatable.
+  ///
+  /// The bounds rectangle is the origin and size of the layer in its own
+  /// coordinate space. When you create a new standalone layer, the default
+  /// value for this property is an empty rectangle, which you must change
+  /// before using the layer. The values of each coordinate in the rectangle are
+  /// measured in pixels.
+  public var bounds = Rectangle.zero /*{
+    didSet {
+      if oldValue.size != bounds.size && contentMode == .redraw {
+        setNeedsDisplay()
+      }
+      setNeedsLayout()
+    }
+  }*/
+
+  /// The layer's position in its superlayer's coordinate space. Animatable.
+  ///
+  /// The value of this property is specified in points and is always specified
+  /// relative to the value in the ``anchorPoint`` property. For new standalone
+  /// layers, the default position is set to `(0.0, 0.0)`. Changing the
+  /// ``frame`` property also updates the value in this property.
+  var position = Point.zero
+
+  /// Defines the anchor point of the layer's bounds rectangle. Animatable.
+  ///
+  /// You specify the value for this property using the unit coordinate space.
+  /// The default value of this property is `(0.5, 0.5)`, which represents the
+  /// center of the layer's bounds rectangle. All geometric manipulations to the
+  /// view occur about the specified point. For example, applying a rotation
+  /// transform to a layer with the default anchor point causes the layer to
+  /// rotate around its center. Changing the anchor point to a different
+  /// location would cause the layer to rotate around that new point.
+  var anchorPoint = Point(x: 0.5, y: 0.5)
+
+  /// A Boolean value indicating whether the layer is displayed. Animatable.
+  open var isHidden = false {
+    didSet {
+      if isHidden != oldValue {
+        needsDisplay = true
+      }
+    }
+  }
+
+  /// Creates an initialized ``Layer`` object.
+  public init() { }
+
+  /// Initiates the update process for a layer if it is currently marked as
+  /// needing an update.
+  ///
+  /// You can call this method as needed to force an update to your layer's
+  /// contents outside of the normal update cycle. Doing so is generally not
+  /// needed, though. The preferred way to update a layer is to set
+  /// ``needsDisplay`` to `true` and let the system update the layer during the
+  /// next cycle.
+  public func displayIfNeeded() {
+    if needsDisplay {
+      display()
+      needsDisplay = false
+    }
+
+    sublayers?.forEach { sublayer in
+      sublayer.displayIfNeeded()
+    }
+  }
+
+  /// Reloads the content of this layer.
+  ///
+  /// Do not call this method directly. The layer calls this method at
+  /// appropriate times to update the layer's content. If the layer has a
+  /// delegate object, this method attempts to call the delegate's
+  /// ``display(_:)`` method, which the delegate can use to update the layer's
+  /// contents. If the delegate does not implement the ``display(_:)`` method,
+  /// this method creates a backing store and calls the layer's ``draw()``
+  /// method to fill that backing store with content. The new backing store
+  /// replaces the previous contents of the layer.
+  ///
+  /// Subclasses can override this method and use it to set the layer's
+  /// ``contents`` property directly. You might do this if your custom layer
+  /// subclass handles layer updates differently.
+  func display() {
+    // TODO: Add display(_:)
+    draw()
+  }
+
+  /// Draws the layer's content.
+  ///
+  /// The default implementation of this method does not do any drawing itself.
+  /// If the layer's delegate implements the ``draw(_:)`` method, that method is
+  /// called to do the actual drawing.
+  ///
+  /// Subclasses can override this method and use it to draw the layer's
+  /// content. When drawing, all coordinates should be specified in points in
+  /// the logical coordinate space.
+  func draw() {
+    delegate?.draw(self)
+  }
+}
+
+// TODO: Add Transaction
+@available(macOS 13.3.0, *)
+public func flush(_ layer: Layer?) {
+  layer?.displayIfNeeded()
+}
