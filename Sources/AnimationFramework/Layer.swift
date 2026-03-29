@@ -61,6 +61,18 @@ public class Layer {
   /// update.
   public var needsDisplay = true
 
+  /// A Boolean value indicating whether the layer has been marked as needing a
+  /// layout update.
+  ///
+  /// You can call this method to indicate that the layout of a layer's
+  /// sublayers has changed and must be updated. The system typically calls this
+  /// method automatically when the layer's bounds change or when sublayers are
+  /// added or removed.
+  ///
+  /// During the next update cycle, the system calls the ``layoutSublayers()``
+  /// method of any layers requiring layout updates.
+  public var needsLayout = true
+
   /// An array containing the layer's sublayers.
   ///
   /// The sublayers are listed in back to front order. The default value of this
@@ -117,14 +129,14 @@ public class Layer {
   /// value for this property is an empty rectangle, which you must change
   /// before using the layer. The values of each coordinate in the rectangle are
   /// measured in pixels.
-  public var bounds = Rectangle.zero /*{
+  public var bounds = Rectangle.zero {
     didSet {
-      if oldValue.size != bounds.size && contentMode == .redraw {
-        setNeedsDisplay()
+      if oldValue != bounds {
+        needsLayout = true
+        needsDisplay = true
       }
-      setNeedsLayout()
     }
-  }*/
+  }
 
   /// The layer's position in its superlayer's coordinate space. Animatable.
   ///
@@ -132,7 +144,13 @@ public class Layer {
   /// relative to the value in the ``anchorPoint`` property. For new standalone
   /// layers, the default position is set to `(0.0, 0.0)`. Changing the
   /// ``frame`` property also updates the value in this property.
-  var position = Point.zero
+  var position = Point.zero {
+    didSet {
+      if oldValue != position {
+        needsDisplay = true
+      }
+    }
+  }
 
   /// Defines the anchor point of the layer's bounds rectangle. Animatable.
   ///
@@ -167,8 +185,8 @@ public class Layer {
   /// next cycle.
   public func displayIfNeeded() {
     if needsDisplay {
-      display()
       needsDisplay = false
+      display()
     }
 
     sublayers?.forEach { sublayer in
@@ -207,10 +225,51 @@ public class Layer {
   func draw() {
     delegate?.draw(self)
   }
+
+  /// Recalculate the receiver's layout, if required.
+  ///
+  /// When this message is received, the layer's super layers are traversed
+  /// until a ancestor layer is found that does not require layout. Then layout
+  /// is performed on the entire layer-tree beneath that ancestor.
+  public func layoutIfNeeded() {
+    var superlayer = self
+    while let ancestorLayer = superlayer.superlayer {
+      if !ancestorLayer.needsLayout {
+        superlayer = ancestorLayer
+        break
+      }
+    }
+
+    if superlayer.needsLayout {
+      superlayer.layoutSublayers()
+      superlayer.needsLayout = false
+    }
+
+    superlayer.sublayers?.forEach { sublayer in
+      sublayer.layoutIfNeeded()
+    }
+  }
+
+  /// Tells the layer to update its layout.
+  ///
+  /// Subclasses can override this method and use it to implement their own
+  /// layout algorithm. Your implementation must set the frame of each sublayer
+  ///  managed by the receiver.
+  ///
+  /// The default implementation of this method calls the
+  /// ``layoutSublayers(of:)`` method of the layer's delegate object. If there
+  /// is no delegate object, or the delegate does not implement that method,
+  /// this method calls the layoutSublayers(of:) method ``layoutManager``
+  /// property.
+  func layoutSublayers() {
+    // TODO: Add layoutManager
+    delegate?.layoutSublayers(of: self)
+  }
 }
 
 // TODO: Add Transaction
 @available(macOS 13.3.0, *)
 public func flush(_ layer: Layer?) {
+  layer?.layoutIfNeeded()
   layer?.displayIfNeeded()
 }

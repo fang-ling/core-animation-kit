@@ -33,9 +33,21 @@ public protocol LayerDelegate: AnyObject {
   ///
   /// - Parameter layer: The layer whose contents need to be drawn.
   func draw(_ layer: Layer)
+
+  /// Tells the delegate a layer's bounds have changed.
+  ///
+  /// The ``layoutSublayers(of:)`` method is called when a layer's bounds have
+  /// changed and its sublayers may need rearranging, for example by changing
+  /// its frame's size. You can implement this method if you need precise
+  /// control over the layout of your layer's sublayers.
+  ///
+  /// - Parameter layer: The layer that requires layout of its sublayers.
+  func layoutSublayers(of layer: Layer)
 }
 
 @available(macOS 13.3.0, *)
 public extension LayerDelegate {
   func draw(_ layer: Layer) { }
+
+  func layoutSublayers(of layer: Layer) { }
 }
