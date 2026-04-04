@@ -18,6 +18,7 @@
 //
 
 import FoundationFramework
+import JavaScriptBridgeFramework
 
 /// An object that manages image-based content and allows you to perform
 /// animations on that content.
@@ -43,7 +44,13 @@ import FoundationFramework
 /// subviews separately.
 @available(macOS 13.3.0, *)
 public class Layer {
-  public var id = UUID()
+  /// An object that provides the contents of the layer. Animatable.
+  ///
+  /// If the layer object is tied to a view object, you should avoid setting the
+  /// contents of this property directly. The interplay between views and layers
+  /// usually results in the view replacing the contents of this property during
+  /// a subsequent update.
+  public var contents: UUID
 
   /// The layer's delegate object.
   ///
@@ -173,7 +180,9 @@ public class Layer {
   }
 
   /// Creates an initialized ``Layer`` object.
-  public init() { }
+  public init() {
+    contents = UUID()
+  }
 
   /// Initiates the update process for a layer if it is currently marked as
   /// needing an update.
@@ -200,30 +209,13 @@ public class Layer {
   /// appropriate times to update the layer's content. If the layer has a
   /// delegate object, this method attempts to call the delegate's
   /// ``display(_:)`` method, which the delegate can use to update the layer's
-  /// contents. If the delegate does not implement the ``display(_:)`` method,
-  /// this method creates a backing store and calls the layer's ``draw()``
-  /// method to fill that backing store with content. The new backing store
-  /// replaces the previous contents of the layer.
+  /// contents.
   ///
   /// Subclasses can override this method and use it to set the layer's
   /// ``contents`` property directly. You might do this if your custom layer
   /// subclass handles layer updates differently.
   func display() {
-    // TODO: Add display(_:)
-    draw()
-  }
-
-  /// Draws the layer's content.
-  ///
-  /// The default implementation of this method does not do any drawing itself.
-  /// If the layer's delegate implements the ``draw(_:)`` method, that method is
-  /// called to do the actual drawing.
-  ///
-  /// Subclasses can override this method and use it to draw the layer's
-  /// content. When drawing, all coordinates should be specified in points in
-  /// the logical coordinate space.
-  func draw() {
-    delegate?.draw(self)
+    delegate?.display(self)
   }
 
   /// Recalculate the receiver's layout, if required.
@@ -240,13 +232,17 @@ public class Layer {
       }
     }
 
-    if superlayer.needsLayout {
-      superlayer.layoutSublayers()
-      superlayer.needsLayout = false
+    superlayer.layout()
+  }
+
+  private func layout() {
+    if needsLayout {
+      layoutSublayers()
+      needsLayout = false
     }
 
-    superlayer.sublayers?.forEach { sublayer in
-      sublayer.layoutIfNeeded()
+    sublayers?.forEach { sublayer in
+      sublayer.layout()
     }
   }
 
@@ -262,14 +258,49 @@ public class Layer {
   /// this method calls the layoutSublayers(of:) method ``layoutManager``
   /// property.
   func layoutSublayers() {
-    // TODO: Add layoutManager
+    // TODO: Add layoutManager?
     delegate?.layoutSublayers(of: self)
   }
-}
 
-// TODO: Add Transaction
-@available(macOS 13.3.0, *)
-public func flush(_ layer: Layer?) {
-  layer?.layoutIfNeeded()
-  layer?.displayIfNeeded()
+  /// Appends the layer to the layer's list of sublayers.
+  ///
+  /// If the array in the sublayers property is `nil`, calling this method
+  /// creates an array for that property and adds the specified layer to it.
+  ///
+  /// - Parameter layer: The layer to be added.
+  public func addSublayer(_ layer: Layer) {
+    if sublayers == nil {
+      sublayers = []
+    }
+
+    if layer.superlayer !== self {
+      layer.removeFromSuperlayer()
+    }
+
+    sublayers?.append(layer)
+
+    JavaScriptBridge.linkElements(elementID: layer.contents, parentID: contents)
+
+    layer.superlayer = self
+
+    needsLayout = true
+  }
+
+  /// Detaches the layer from its parent layer.
+  ///
+  /// You can use this method to remove a layer (and all of its sublayers) from
+  /// a layer hierarchy. This method updates both the superlayer's list of
+  /// sublayers and sets this layer's superlayer property to `nil`.
+  public func removeFromSuperlayer() {
+    guard
+      let index = superlayer?.sublayers?.firstIndex(where: { $0 === self })
+    else {
+      return
+    }
+    superlayer?.sublayers?.remove(at: index)
+    superlayer = nil
+
+    superlayer?.needsLayout = true
+    superlayer?.needsDisplay = true
+  }
 }
