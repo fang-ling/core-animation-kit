@@ -22,7 +22,8 @@
 import PackageDescription
 
 let dependencies = [
-  ("https://github.com/fang-ling/foundation-framework", "snapshot")
+  ("https://github.com/fang-ling/foundation-framework", "snapshot"),
+  ("https://github.com/fang-ling/javascript-bridge-framework", "snapshot")
 ]
 
 let package = Package(
@@ -35,7 +36,11 @@ let package = Package(
     .target(
       name: "AnimationFramework",
       dependencies: [
-        .product(name: "FoundationFramework", package: "foundation-framework")
+        .product(name: "FoundationFramework", package: "foundation-framework"),
+        .product(
+          name: "JavaScriptBridgeFramework",
+          package: "javascript-bridge-framework"
+        )
       ],
     )
   ]

@@ -25,17 +25,28 @@
 /// assigned to the delegate property of the layer object.
 @available(macOS 13.3.0, *)
 public protocol LayerDelegate: AnyObject {
-  /// Tells the delegate to implement the display process using the layer's
-  /// context.
+  /// Tells the delegate to implement the display process.
   ///
-  /// The ``draw(_:)`` method is called when the layer is marked for its content
-  /// to be reloaded, typically with setting ``needsDisplay`` to `true`.
+  /// The ``display(_:)`` delegate method is called when the layer is marked for
+  /// its content to be reloaded, typically initiated by setting
+  /// ``needsDisplay`` to `true`. The typical technique for updating is to set
+  /// the layer's contents property.
+  func display(_ layer: Layer)
+
+  /// Tells the delegate a layer's bounds have changed.
   ///
-  /// - Parameter layer: The layer whose contents need to be drawn.
-  func draw(_ layer: Layer)
+  /// The ``layoutSublayers(of:)`` method is called when a layer's bounds have
+  /// changed and its sublayers may need rearranging, for example by changing
+  /// its frame's size. You can implement this method if you need precise
+  /// control over the layout of your layer's sublayers.
+  ///
+  /// - Parameter layer: The layer that requires layout of its sublayers.
+  func layoutSublayers(of layer: Layer)
 }
 
 @available(macOS 13.3.0, *)
 public extension LayerDelegate {
-  func draw(_ layer: Layer) { }
+  func display(_ layer: Layer) { }
+
+  func layoutSublayers(of layer: Layer) { }
 }

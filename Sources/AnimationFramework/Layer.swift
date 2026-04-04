@@ -18,6 +18,7 @@
 //
 
 import FoundationFramework
+import JavaScriptBridgeFramework
 
 /// An object that manages image-based content and allows you to perform
 /// animations on that content.
@@ -43,7 +44,13 @@ import FoundationFramework
 /// subviews separately.
 @available(macOS 13.3.0, *)
 public class Layer {
-  public var id = UUID()
+  /// An object that provides the contents of the layer. Animatable.
+  ///
+  /// If the layer object is tied to a view object, you should avoid setting the
+  /// contents of this property directly. The interplay between views and layers
+  /// usually results in the view replacing the contents of this property during
+  /// a subsequent update.
+  public var contents: UUID
 
   /// The layer's delegate object.
   ///
@@ -60,6 +67,18 @@ public class Layer {
   /// A Boolean value indicating whether the layer has been marked as needing an
   /// update.
   public var needsDisplay = true
+
+  /// A Boolean value indicating whether the layer has been marked as needing a
+  /// layout update.
+  ///
+  /// You can call this method to indicate that the layout of a layer's
+  /// sublayers has changed and must be updated. The system typically calls this
+  /// method automatically when the layer's bounds change or when sublayers are
+  /// added or removed.
+  ///
+  /// During the next update cycle, the system calls the ``layoutSublayers()``
+  /// method of any layers requiring layout updates.
+  public var needsLayout = true
 
   /// An array containing the layer's sublayers.
   ///
@@ -117,14 +136,14 @@ public class Layer {
   /// value for this property is an empty rectangle, which you must change
   /// before using the layer. The values of each coordinate in the rectangle are
   /// measured in pixels.
-  public var bounds = Rectangle.zero /*{
+  public var bounds = Rectangle.zero {
     didSet {
-      if oldValue.size != bounds.size && contentMode == .redraw {
-        setNeedsDisplay()
+      if oldValue != bounds {
+        needsLayout = true
+        needsDisplay = true
       }
-      setNeedsLayout()
     }
-  }*/
+  }
 
   /// The layer's position in its superlayer's coordinate space. Animatable.
   ///
@@ -132,7 +151,13 @@ public class Layer {
   /// relative to the value in the ``anchorPoint`` property. For new standalone
   /// layers, the default position is set to `(0.0, 0.0)`. Changing the
   /// ``frame`` property also updates the value in this property.
-  var position = Point.zero
+  var position = Point.zero {
+    didSet {
+      if oldValue != position {
+        needsDisplay = true
+      }
+    }
+  }
 
   /// Defines the anchor point of the layer's bounds rectangle. Animatable.
   ///
@@ -155,7 +180,9 @@ public class Layer {
   }
 
   /// Creates an initialized ``Layer`` object.
-  public init() { }
+  public init() {
+    contents = UUID()
+  }
 
   /// Initiates the update process for a layer if it is currently marked as
   /// needing an update.
@@ -167,8 +194,8 @@ public class Layer {
   /// next cycle.
   public func displayIfNeeded() {
     if needsDisplay {
-      display()
       needsDisplay = false
+      display()
     }
 
     sublayers?.forEach { sublayer in
@@ -182,35 +209,98 @@ public class Layer {
   /// appropriate times to update the layer's content. If the layer has a
   /// delegate object, this method attempts to call the delegate's
   /// ``display(_:)`` method, which the delegate can use to update the layer's
-  /// contents. If the delegate does not implement the ``display(_:)`` method,
-  /// this method creates a backing store and calls the layer's ``draw()``
-  /// method to fill that backing store with content. The new backing store
-  /// replaces the previous contents of the layer.
+  /// contents.
   ///
   /// Subclasses can override this method and use it to set the layer's
   /// ``contents`` property directly. You might do this if your custom layer
   /// subclass handles layer updates differently.
   func display() {
-    // TODO: Add display(_:)
-    draw()
+    delegate?.display(self)
   }
 
-  /// Draws the layer's content.
+  /// Recalculate the receiver's layout, if required.
   ///
-  /// The default implementation of this method does not do any drawing itself.
-  /// If the layer's delegate implements the ``draw(_:)`` method, that method is
-  /// called to do the actual drawing.
-  ///
-  /// Subclasses can override this method and use it to draw the layer's
-  /// content. When drawing, all coordinates should be specified in points in
-  /// the logical coordinate space.
-  func draw() {
-    delegate?.draw(self)
-  }
-}
+  /// When this message is received, the layer's super layers are traversed
+  /// until a ancestor layer is found that does not require layout. Then layout
+  /// is performed on the entire layer-tree beneath that ancestor.
+  public func layoutIfNeeded() {
+    var superlayer = self
+    while let ancestorLayer = superlayer.superlayer {
+      if !ancestorLayer.needsLayout {
+        superlayer = ancestorLayer
+        break
+      }
+    }
 
-// TODO: Add Transaction
-@available(macOS 13.3.0, *)
-public func flush(_ layer: Layer?) {
-  layer?.displayIfNeeded()
+    superlayer.layout()
+  }
+
+  private func layout() {
+    if needsLayout {
+      layoutSublayers()
+      needsLayout = false
+    }
+
+    sublayers?.forEach { sublayer in
+      sublayer.layout()
+    }
+  }
+
+  /// Tells the layer to update its layout.
+  ///
+  /// Subclasses can override this method and use it to implement their own
+  /// layout algorithm. Your implementation must set the frame of each sublayer
+  ///  managed by the receiver.
+  ///
+  /// The default implementation of this method calls the
+  /// ``layoutSublayers(of:)`` method of the layer's delegate object. If there
+  /// is no delegate object, or the delegate does not implement that method,
+  /// this method calls the layoutSublayers(of:) method ``layoutManager``
+  /// property.
+  func layoutSublayers() {
+    // TODO: Add layoutManager?
+    delegate?.layoutSublayers(of: self)
+  }
+
+  /// Appends the layer to the layer's list of sublayers.
+  ///
+  /// If the array in the sublayers property is `nil`, calling this method
+  /// creates an array for that property and adds the specified layer to it.
+  ///
+  /// - Parameter layer: The layer to be added.
+  public func addSublayer(_ layer: Layer) {
+    if sublayers == nil {
+      sublayers = []
+    }
+
+    if layer.superlayer !== self {
+      layer.removeFromSuperlayer()
+    }
+
+    sublayers?.append(layer)
+
+    JavaScriptBridge.linkElements(elementID: layer.contents, parentID: contents)
+
+    layer.superlayer = self
+
+    needsLayout = true
+  }
+
+  /// Detaches the layer from its parent layer.
+  ///
+  /// You can use this method to remove a layer (and all of its sublayers) from
+  /// a layer hierarchy. This method updates both the superlayer's list of
+  /// sublayers and sets this layer's superlayer property to `nil`.
+  public func removeFromSuperlayer() {
+    guard
+      let index = superlayer?.sublayers?.firstIndex(where: { $0 === self })
+    else {
+      return
+    }
+    superlayer?.sublayers?.remove(at: index)
+    superlayer = nil
+
+    superlayer?.needsLayout = true
+    superlayer?.needsDisplay = true
+  }
 }
