@@ -2,7 +2,7 @@
 
 //
 //  Package.swift
-//  animation-framework
+//  core-animation-kit
 //
 //  Created by Fang Ling on 2026/3/28.
 //
@@ -21,27 +21,39 @@
 
 import PackageDescription
 
+let isDevelopment = false
+
 let dependencies = [
-  ("https://github.com/fang-ling/foundation-framework", "snapshot"),
-  ("https://github.com/fang-ling/javascript-bridge-framework", "snapshot")
+  ("c-kit", "main"),
+  ("core-foundation-kit", "main"),
+  ("foundation-kit", "main"),
+  ("javascript-core-kit", "main"),
+  ("objective-c-kit", "main")
 ]
 
 let package = Package(
-  name: "animation-framework",
+  name: "core-animation-kit",
   products: [
-    .library(name: "AnimationFramework", targets: ["AnimationFramework"])
+    .library(name: "CoreAnimationKit", targets: ["CoreAnimationKit"])
   ],
-  dependencies: dependencies.map({ .package(url: $0.0, branch: $0.1) }),
+  dependencies: dependencies.map({
+    if isDevelopment {
+      return .package(path: "../\($0.0)")
+    } else {
+      return .package(url: "https://github.com/fang-ling/\($0.0)", branch: $0.1)
+    }
+  }),
   targets: [
     .target(
-      name: "AnimationFramework",
+      name: "CoreAnimationKit",
       dependencies: [
-        .product(name: "FoundationFramework", package: "foundation-framework"),
-        .product(
-          name: "JavaScriptBridgeFramework",
-          package: "javascript-bridge-framework"
-        )
+        .product(name: "CKit", package: "c-kit"),
+        .product(name: "CoreFoundationKit", package: "core-foundation-kit"),
+        .product(name: "FoundationKit", package: "foundation-kit"),
+        .product(name: "JavaScriptCoreKit", package: "javascript-core-kit"),
+        .product(name: "ObjectiveCKit", package: "objective-c-kit")
       ],
+      publicHeadersPath: "Includes"
     )
   ]
 )
