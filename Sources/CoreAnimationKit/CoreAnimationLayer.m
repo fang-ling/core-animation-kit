@@ -27,6 +27,8 @@ C_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, readwrite) CoreAnimationLayer* superlayer;
 
+@property (nonatomic, readwrite) FoundationMutableArray* sublayers;
+
 @end
 
 @implementation CoreAnimationLayer
@@ -38,13 +40,14 @@ C_ASSUME_NONNULL_BEGIN
 
   self.contents = -1;
 
-  self.needsLayout = true;
-  self.needsDisplay = true;
-  self.isHidden = false;
+  self.needsLayout = yes;
+  self.needsDisplay = yes;
+  self.isHidden = no;
 
   self.bounds = (CoreFoundationRectangle){ 0 };
   self.position = (CoreFoundationPoint){ 0 };
   self.anchorPoint = (CoreFoundationPoint){ .x = 0.5, .y = 0.5 };
+  self.sublayers = [FoundationMutableArray makeArray];
 
   return self;
 }
@@ -63,8 +66,6 @@ C_ASSUME_NONNULL_BEGIN
 }
 
 - (void)setFrame:(CoreFoundationRectangle)frame {
-  self.frame = frame;
-
   self.bounds = (CoreFoundationRectangle){
     .origin = { 0 },
     .size = frame.size
@@ -77,24 +78,25 @@ C_ASSUME_NONNULL_BEGIN
 
 - (void)setBounds:(CoreFoundationRectangle)bounds {
   if (!CoreFoundationRectangleEqual(self.bounds, bounds)) {
-    self.needsLayout = true;
-    self.needsDisplay = true;
+    self.needsLayout = yes;
+    self.needsDisplay = yes;
   }
 
-  self.bounds = bounds;
+  self->_bounds = bounds;
 }
 
 - (void)setPosition:(CoreFoundationPoint)position {
-  if (CoreFoundationPointEqual(self.position, position)) {
-    self.needsDisplay = true;
+  if (!CoreFoundationPointEqual(self.position, position)) {
+    self.needsDisplay = yes;
   }
-  self.position = position;
+  self->_position = position;
 }
 
 - (void)setIsHidden:(CBoolean)isHidden {
   if (self.isHidden != isHidden) {
-    self.needsDisplay = true;
+    self.needsDisplay = yes;
   }
+  self->_isHidden = isHidden;
 }
 
 /// Reloads the content of this layer.
@@ -114,37 +116,42 @@ C_ASSUME_NONNULL_BEGIN
 
 - (void)displayIfNeeded {
   if (self.needsDisplay) {
-    self.needsDisplay = false;
+    self.needsDisplay = no;
     [self display];
   }
 
   for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = [self.sublayers objectAtIndex:i];
+    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
     [sublayer displayIfNeeded];
   }
 }
 
 - (void)layoutSublayers {
-  // TODO: Add layoutManager?
+  /* TODO: Add layoutManager? */
   [self.delegate layoutSublayersOfLayer:self];
 }
 
 - (void)layout { /* private */
   if (self.needsLayout) {
     [self layoutSublayers];
-    self.needsLayout = false;
+    self.needsLayout = no;
   }
 
   for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = [self.sublayers objectAtIndex:i];
+    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
     [sublayer layout];
   }
 }
 
 - (void)layoutIfNeeded {
   let superlayer = self;
-  while (true) {
+  while (yes) {
     let ancestorLayer = superlayer.superlayer;
+
+    if (!ancestorLayer) {
+      break;
+    }
+
     if (!ancestorLayer.needsLayout) {
       superlayer = ancestorLayer;
       break;
@@ -179,11 +186,11 @@ C_ASSUME_NONNULL_BEGIN
 
   [self.sublayers appendObject:layer];
 
-  JavaScriptCoreDOMNodeAddSubnode(self.contents, layer.contents);
+  [JavaScriptCoreContext addSubnode:layer.contents forNode:self.contents];
 
   layer.superlayer = self;
 
-  self.needsLayout = true;
+  self.needsLayout = yes;
 }
 
 @end

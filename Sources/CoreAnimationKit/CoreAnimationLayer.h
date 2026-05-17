@@ -26,6 +26,30 @@
 
 C_ASSUME_NONNULL_BEGIN
 
+/**
+ * An object that manages DOM-based content and allows you to perform animations
+ * on that content.
+ *
+ * Layers are often used to provide the backing store for views but can also be
+ * used without a view to display content. A layer's main job is to manage the
+ * visual content that you provide but the layer itself has visual attributes
+ * that can be set, such as a background color, border, and shadow. In addition
+ * to managing visual content, the layer also maintains information about the
+ * geometry of its content (such as its position, size, and transform) that is
+ * used to present that content onscreen. Modifying the properties of the layer
+ * is how you initiate animations on the layer's content or geometry. A layer
+ * object encapsulates the duration and pacing of a layer and its animations by
+ * adopting the ``CAMediaTiming`` protocol, which defines the layer's timing
+ * information.
+ *
+ * If the layer object was created by a view, the view typically assigns itself
+ * as the layer's delegate automatically, and you should not change that
+ * relationship. For layers you create yourself, you can assign a delegate
+ * object and use that object to provide the contents of the layer dynamically
+ * and perform other tasks. A layer may also have a layout manager object
+ * (assigned to the layoutManager property) to manage the layout of subviews
+ * separately.
+ */
 @interface CoreAnimationLayer: ObjectiveCObject
 
 @property (nonatomic) CUnsignedInteger32 contents;
@@ -37,9 +61,9 @@ C_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) CBoolean needsLayout;
 
-@property (nonatomic) FoundationMutableArray<CoreAnimationLayer*>* sublayers;
-
 @property (nonatomic, readonly) CoreAnimationLayer* superlayer;
+
+@property (nonatomic, readonly) FoundationMutableArray* sublayers;
 
 @property (nonatomic) CoreFoundationRectangle frame;
 
@@ -51,11 +75,26 @@ C_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) CBoolean isHidden;
 
+/**
+ * Returns an initialized ``CoreAnimationLayer`` object.
+ *
+ * This is the designated initializer for layer objects
+ */
 - (instancetype)init;
 
 - (void)displayIfNeeded;
 
 - (void)layoutIfNeeded;
+
+/**
+ * Appends the layer to the layer's list of sublayers.
+ *
+ * If the array in the sublayers property is `nil`, calling this method creates
+ * an array for that property and adds the specified layer to it.
+ *
+ * - Parameter layer: The layer to be added.
+ */
+- (void)addSublayer:(CoreAnimationLayer*)layer;
 
 @end
 

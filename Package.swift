@@ -53,7 +53,11 @@ let package = Package(
         .product(name: "JavaScriptCoreKit", package: "javascript-core-kit"),
         .product(name: "ObjectiveCKit", package: "objective-c-kit")
       ],
-      publicHeadersPath: "Includes"
+      publicHeadersPath: "Includes",
+      cSettings: [
+        .unsafeFlags(["-fobjc-runtime=objfw-1.5"], .when(platforms: [.wasi])),
+        .unsafeFlags(["-fobjc-arc"])
+      ]
     )
   ]
 )
