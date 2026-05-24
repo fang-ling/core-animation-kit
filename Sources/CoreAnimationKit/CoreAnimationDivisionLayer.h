@@ -24,11 +24,9 @@
 C_ASSUME_NONNULL_BEGIN
 
 /**
- * A layer that provides a layer suitable for rendering DOM content.
+ * A layer that provides a layer suitable for rendering DOM division content.
  */
 @interface CoreAnimationDivisionLayer: CoreAnimationLayer
-
-- (instancetype)init;
 
 @end
 

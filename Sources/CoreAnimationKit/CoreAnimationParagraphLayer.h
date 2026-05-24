@@ -1,8 +1,8 @@
 /*
- *  CoreAnimationKit.h
+ *  CoreAnimationParagraphLayer.h
  *  core-animation-kit
  *
- *  Created by Fang Ling on 2026/5/3.
+ *  Created by Fang Ling on 2026/5/24.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,13 +17,17 @@
  *  limitations under the License.
  */
 
-#ifndef CoreAnimationKit_h
-#define CoreAnimationKit_h
+#import <CKit/CKit.h>
 
-#import "../../CoreAnimationDivisionLayer.h"
-#import "../../CoreAnimationLayer.h"
-#import "../../CoreAnimationLayerDelegate.h"
-#import "../../CoreAnimationParagraphLayer.h"
-#import "../../CoreAnimationTransaction.h"
+#import "CoreAnimationLayer.h"
 
-#endif /* CoreAnimationKit_h */
+C_ASSUME_NONNULL_BEGIN
+
+/**
+ * A layer that provides a layer suitable for rendering DOM paragraph content.
+ */
+@interface CoreAnimationParagraphLayer: CoreAnimationLayer
+
+@end
+
+C_ASSUME_NONNULL_END
