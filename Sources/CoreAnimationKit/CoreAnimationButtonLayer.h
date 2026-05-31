@@ -1,8 +1,8 @@
 /*
- *  CoreAnimationKit.h
+ *  CoreAnimationButtonLayer.h
  *  core-animation-kit
  *
- *  Created by Fang Ling on 2026/5/3.
+ *  Created by Fang Ling on 2026/5/31.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,14 +17,17 @@
  *  limitations under the License.
  */
 
-#ifndef CoreAnimationKit_h
-#define CoreAnimationKit_h
+#import "CoreAnimationLayer.h"
 
-#import "../../CoreAnimationButtonLayer.h"
-#import "../../CoreAnimationDivisionLayer.h"
-#import "../../CoreAnimationLayer.h"
-#import "../../CoreAnimationLayerDelegate.h"
-#import "../../CoreAnimationParagraphLayer.h"
-#import "../../CoreAnimationTransaction.h"
+#import <CKit/CKit.h>
 
-#endif /* CoreAnimationKit_h */
+C_ASSUME_NONNULL_BEGIN
+
+/**
+ * A layer that provides a layer suitable for rendering DOM button content.
+ */
+@interface CoreAnimationButtonLayer: CoreAnimationLayer
+
+@end
+
+C_ASSUME_NONNULL_END
