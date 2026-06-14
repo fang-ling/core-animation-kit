@@ -56,6 +56,11 @@ C_ASSUME_NONNULL_BEGIN
  *
  * - ``masksToBounds``
  * - ``cornerRadius``
+ *
+ * ### Managing the layer hierarchy
+ *
+ * - ``superlayer``
+ * - ``removeFromSuperlayer``
  */
 @interface CoreAnimationLayer: ObjectiveCObject
 
@@ -97,7 +102,12 @@ C_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) CBoolean needsLayout;
 
-@property (nonatomic, readonly) CoreAnimationLayer* superlayer;
+/**
+ * The superlayer of the layer.
+ *
+ * The superlayer manages the layout of its sublayers.
+ */
+@property (nullable, nonatomic, readonly) CoreAnimationLayer* superlayer;
 
 @property (nonatomic, readonly) FoundationMutableArray* sublayers;
 
@@ -131,6 +141,15 @@ C_ASSUME_NONNULL_BEGIN
  * - Parameter layer: The layer to be added.
  */
 - (void)addSublayer:(CoreAnimationLayer*)layer;
+
+/**
+ * Detaches the layer from its parent layer.
+ *
+ * You can use this method to remove a layer (and all of its sublayers) from a
+ * layer hierarchy. This method updates both the superlayer's list of sublayers
+ * and sets this layer's superlayer property to `nil`.
+ */
+- (void)removeFromSuperlayer;
 
 @end
 

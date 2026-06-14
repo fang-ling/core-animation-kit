@@ -25,7 +25,7 @@ C_ASSUME_NONNULL_BEGIN
 
 @interface CoreAnimationLayer()
 
-@property (nonatomic, readwrite) CoreAnimationLayer* superlayer;
+@property (nullable, nonatomic, readwrite) CoreAnimationLayer* superlayer;
 
 @property (nonatomic, readwrite) FoundationMutableArray* sublayers;
 
@@ -178,17 +178,21 @@ C_ASSUME_NONNULL_BEGIN
 }
 
 - (void)removeFromSuperlayer {
-// TODO
-//  guard
-//    let index = superlayer?.sublayers?.firstIndex(where: { $0 === self })
-//  else {
-//    return
-//  }
-//  superlayer?.sublayers?.remove(at: index)
-//  superlayer = nil
-//
-//  superlayer?.needsLayout = true
-//  superlayer?.needsDisplay = true
+  if (self.superlayer == nil) {
+    return;
+  }
+
+  [self.superlayer.sublayers
+   removeAllObjectsWhere:^CBoolean(ObjectiveCAnyObject object) {
+    return [object isEqual:self];
+  }];
+
+  [JavaScriptCoreContext removeFromSupernode:self.superlayer.contents
+                                     forNode:self.contents];
+
+  self.superlayer.needsLayout = yes;
+  self.superlayer.needsDisplay = yes;
+  self.superlayer = nil;
 }
 
 - (void)addSublayer:(CoreAnimationLayer*)layer {
