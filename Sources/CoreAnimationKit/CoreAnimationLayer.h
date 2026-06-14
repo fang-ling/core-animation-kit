@@ -17,12 +17,12 @@
  *  limitations under the License.
  */
 
+#import "CoreAnimationLayerDelegate.h"
+
 #import <CKit/CKit.h>
 #import <CoreFoundationKit/CoreFoundationKit.h>
 #import <FoundationKit/FoundationKit.h>
 #import <ObjectiveCKit/ObjectiveCKit.h>
-
-#import "CoreAnimationLayerDelegate.h"
 
 C_ASSUME_NONNULL_BEGIN
 
@@ -49,6 +49,13 @@ C_ASSUME_NONNULL_BEGIN
  * and perform other tasks. A layer may also have a layout manager object
  * (assigned to the layoutManager property) to manage the layout of subviews
  * separately.
+ *
+ * ## Topics
+ *
+ * ### Modifying the layer's appearance
+ *
+ * - ``masksToBounds``
+ * - ``cornerRadius``
  */
 @interface CoreAnimationLayer: ObjectiveCObject
 
@@ -56,6 +63,35 @@ C_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, weak)
   ObjectiveCAnyObject<CoreAnimationLayerDelegate> delegate;
+
+/**
+ * A Boolean indicating whether sublayers are clipped to the layer's bounds.
+ * Animatable.
+ *
+ * When the value of this property is `yes`, CoreAnimation creates an implicit
+ * clipping mask that matches the bounds of the layer and includes any corner
+ * radius effects. If a value for the ``mask`` property is also specified, the
+ * two masks are multiplied to get the final mask value.
+ *
+ * The default value of this property is `no`.
+ */
+@property (nonatomic) CBoolean masksToBounds;
+
+/**
+ * The radius to use when drawing rounded corners for the layer's background.
+ * Animatable.
+ *
+ * Setting the radius to a value greater than `0.0` causes the layer to begin
+ * drawing rounded corners on its background. By default, the corner radius does
+ * not apply to the content in the layer's ``contents`` property; it applies
+ * only to the background color and border of the layer. However, setting the
+ * ``masksToBounds`` property to `yes` causes the content to be clipped to the
+ * rounded corners.
+ *
+ * The default value of this property is `0.0`.
+ */
+@property (nonatomic) CFloatingPoint cornerRadius;
+/* FIXME: When masksToBounds is off, this does not match the CSS. */
 
 @property (nonatomic) CBoolean needsDisplay;
 

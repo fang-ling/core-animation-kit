@@ -40,6 +40,8 @@ C_ASSUME_NONNULL_BEGIN
 
   self.contents = -1;
 
+  self.masksToBounds = no;
+  self.cornerRadius = 0.0;
   self.needsLayout = yes;
   self.needsDisplay = yes;
   self.isHidden = no;
@@ -74,6 +76,20 @@ C_ASSUME_NONNULL_BEGIN
     .x = frame.origin.x + frame.size.width * self.anchorPoint.x,
     .y = frame.origin.y + frame.size.height * self.anchorPoint.y
   };
+}
+
+- (void)setCornerRadius:(CFloatingPoint)cornerRadius {
+  if (self.cornerRadius != cornerRadius) {
+    self.needsDisplay = yes;
+  }
+  self->_cornerRadius = cornerRadius;
+}
+
+- (void)setMasksToBounds:(CBoolean)masksToBounds {
+  if (self.masksToBounds != masksToBounds) {
+    self.needsDisplay = yes;
+  }
+  self->_masksToBounds = masksToBounds;
 }
 
 - (void)setBounds:(CoreFoundationRectangle)bounds {
