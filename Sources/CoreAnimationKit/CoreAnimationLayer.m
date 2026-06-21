@@ -25,7 +25,7 @@ C_ASSUME_NONNULL_BEGIN
 
 @interface CoreAnimationLayer()
 
-@property (nonatomic, readwrite) CoreAnimationLayer* superlayer;
+@property (nullable, nonatomic, readwrite) CoreAnimationLayer* superlayer;
 
 @property (nonatomic, readwrite) FoundationMutableArray* sublayers;
 
@@ -40,6 +40,8 @@ C_ASSUME_NONNULL_BEGIN
 
   self.contents = -1;
 
+  self.masksToBounds = no;
+  self.cornerRadius = 0.0;
   self.needsLayout = yes;
   self.needsDisplay = yes;
   self.isHidden = no;
@@ -74,6 +76,20 @@ C_ASSUME_NONNULL_BEGIN
     .x = frame.origin.x + frame.size.width * self.anchorPoint.x,
     .y = frame.origin.y + frame.size.height * self.anchorPoint.y
   };
+}
+
+- (void)setCornerRadius:(CFloatingPoint)cornerRadius {
+  if (self.cornerRadius != cornerRadius) {
+    self.needsDisplay = yes;
+  }
+  self->_cornerRadius = cornerRadius;
+}
+
+- (void)setMasksToBounds:(CBoolean)masksToBounds {
+  if (self.masksToBounds != masksToBounds) {
+    self.needsDisplay = yes;
+  }
+  self->_masksToBounds = masksToBounds;
 }
 
 - (void)setBounds:(CoreFoundationRectangle)bounds {
@@ -161,20 +177,6 @@ C_ASSUME_NONNULL_BEGIN
   [superlayer layout];
 }
 
-- (void)removeFromSuperlayer {
-// TODO
-//  guard
-//    let index = superlayer?.sublayers?.firstIndex(where: { $0 === self })
-//  else {
-//    return
-//  }
-//  superlayer?.sublayers?.remove(at: index)
-//  superlayer = nil
-//
-//  superlayer?.needsLayout = true
-//  superlayer?.needsDisplay = true
-}
-
 - (void)addSublayer:(CoreAnimationLayer*)layer {
   if (self.sublayers == nil) {
     self.sublayers = [FoundationMutableArray makeArray];
@@ -187,6 +189,44 @@ C_ASSUME_NONNULL_BEGIN
   [self.sublayers appendObject:layer];
 
   [JavaScriptCoreContext addSubnode:layer.contents forNode:self.contents];
+
+  layer.superlayer = self;
+
+  self.needsLayout = yes;
+}
+
+- (void)removeFromSuperlayer {
+  if (self.superlayer == nil) {
+    return;
+  }
+
+  [self.superlayer.sublayers
+   removeAllObjectsWhere:^CBoolean(ObjectiveCAnyObject object) {
+    return [object isEqual:self];
+  }];
+
+  [JavaScriptCoreContext removeFromSupernode:self.superlayer.contents
+                                     forNode:self.contents];
+
+  self.superlayer.needsLayout = yes;
+  self.superlayer.needsDisplay = yes;
+  self.superlayer = nil;
+}
+
+- (void)insertSublayer:(CoreAnimationLayer*)layer atIndex:(CInteger)index {
+  if (self.sublayers == nil) {
+    self.sublayers = [FoundationMutableArray makeArray];
+  }
+
+  if (layer.superlayer != self) {
+    [layer removeFromSuperlayer];
+  }
+
+  [self.sublayers insertObject:layer atIndex:index];
+
+  [JavaScriptCoreContext insertSubnode:layer.contents
+                               atIndex:index
+                               forNode:self.contents];
 
   layer.superlayer = self;
 

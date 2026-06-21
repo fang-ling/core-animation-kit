@@ -17,12 +17,12 @@
  *  limitations under the License.
  */
 
+#import "CoreAnimationLayerDelegate.h"
+
 #import <CKit/CKit.h>
 #import <CoreFoundationKit/CoreFoundationKit.h>
 #import <FoundationKit/FoundationKit.h>
 #import <ObjectiveCKit/ObjectiveCKit.h>
-
-#import "CoreAnimationLayerDelegate.h"
 
 C_ASSUME_NONNULL_BEGIN
 
@@ -49,6 +49,21 @@ C_ASSUME_NONNULL_BEGIN
  * and perform other tasks. A layer may also have a layout manager object
  * (assigned to the layoutManager property) to manage the layout of subviews
  * separately.
+ *
+ * ## Topics
+ *
+ * ### Modifying the layer's appearance
+ *
+ * - ``masksToBounds``
+ * - ``cornerRadius``
+ * - ``backgroundColor``
+ *
+ * ### Managing the layer hierarchy
+ *
+ * - ``superlayer``
+ * - ``addSublayer:``
+ * - ``removeFromSuperlayer``
+ * - ``insertSublayer:atIndex:``
  */
 @interface CoreAnimationLayer: ObjectiveCObject
 
@@ -57,11 +72,53 @@ C_ASSUME_NONNULL_BEGIN
 @property (nonatomic, weak)
   ObjectiveCAnyObject<CoreAnimationLayerDelegate> delegate;
 
+/**
+ * A Boolean indicating whether sublayers are clipped to the layer's bounds.
+ * Animatable.
+ *
+ * When the value of this property is `yes`, CoreAnimation creates an implicit
+ * clipping mask that matches the bounds of the layer and includes any corner
+ * radius effects. If a value for the ``mask`` property is also specified, the
+ * two masks are multiplied to get the final mask value.
+ *
+ * The default value of this property is `no`.
+ */
+@property (nonatomic) CBoolean masksToBounds;
+
+/**
+ * The radius to use when drawing rounded corners for the layer's background.
+ * Animatable.
+ *
+ * Setting the radius to a value greater than `0.0` causes the layer to begin
+ * drawing rounded corners on its background. By default, the corner radius does
+ * not apply to the content in the layer's ``contents`` property; it applies
+ * only to the background color and border of the layer. However, setting the
+ * ``masksToBounds`` property to `yes` causes the content to be clipped to the
+ * rounded corners.
+ *
+ * The default value of this property is `0.0`.
+ */
+@property (nonatomic) CFloatingPoint cornerRadius;
+/* FIXME: When masksToBounds is off, this does not match the CSS. */
+
+/**
+ * The background color of the receiver. Animatable.
+ *
+ * The default value of this property is `nil`.
+ */
+@property (nullable) ObjectiveCAnyObject backgroundColor;
+/* TODO: Add Core Graphics. */
+
 @property (nonatomic) CBoolean needsDisplay;
 
 @property (nonatomic) CBoolean needsLayout;
 
-@property (nonatomic, readonly) CoreAnimationLayer* superlayer;
+/**
+ * The superlayer of the layer.
+ *
+ * The superlayer manages the layout of its sublayers.
+ */
+@property (nullable, nonatomic, readonly) CoreAnimationLayer* superlayer;
 
 @property (nonatomic, readonly) FoundationMutableArray* sublayers;
 
@@ -95,6 +152,26 @@ C_ASSUME_NONNULL_BEGIN
  * - Parameter layer: The layer to be added.
  */
 - (void)addSublayer:(CoreAnimationLayer*)layer;
+
+/**
+ * Detaches the layer from its parent layer.
+ *
+ * You can use this method to remove a layer (and all of its sublayers) from a
+ * layer hierarchy. This method updates both the superlayer's list of sublayers
+ * and sets this layer's superlayer property to `nil`.
+ */
+- (void)removeFromSuperlayer;
+
+/**
+ * Inserts the specified layer into the receiver's list of sublayers at the
+ * specified index.
+ *
+ * - Parameters:
+ *   - layer: The sublayer to be inserted into the current layer.
+ *   - index: The index at which to insert aLayer. This value must be a valid
+ *     `0`-based index into the ``sublayers`` array.
+ */
+- (void)insertSublayer:(CoreAnimationLayer*)layer atIndex:(CInteger)index;
 
 @end
 
