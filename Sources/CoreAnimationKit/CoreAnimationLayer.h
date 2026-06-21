@@ -56,11 +56,14 @@ C_ASSUME_NONNULL_BEGIN
  *
  * - ``masksToBounds``
  * - ``cornerRadius``
+ * - ``backgroundColor``
  *
  * ### Managing the layer hierarchy
  *
  * - ``superlayer``
+ * - ``addSublayer:``
  * - ``removeFromSuperlayer``
+ * - ``insertSublayer:atIndex:``
  */
 @interface CoreAnimationLayer: ObjectiveCObject
 
@@ -97,6 +100,14 @@ C_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic) CFloatingPoint cornerRadius;
 /* FIXME: When masksToBounds is off, this does not match the CSS. */
+
+/**
+ * The background color of the receiver. Animatable.
+ *
+ * The default value of this property is `nil`.
+ */
+@property (nullable) ObjectiveCAnyObject backgroundColor;
+/* TODO: Add Core Graphics. */
 
 @property (nonatomic) CBoolean needsDisplay;
 
@@ -150,6 +161,17 @@ C_ASSUME_NONNULL_BEGIN
  * and sets this layer's superlayer property to `nil`.
  */
 - (void)removeFromSuperlayer;
+
+/**
+ * Inserts the specified layer into the receiver's list of sublayers at the
+ * specified index.
+ *
+ * - Parameters:
+ *   - layer: The sublayer to be inserted into the current layer.
+ *   - index: The index at which to insert aLayer. This value must be a valid
+ *     `0`-based index into the ``sublayers`` array.
+ */
+- (void)insertSublayer:(CoreAnimationLayer*)layer atIndex:(CInteger)index;
 
 @end
 

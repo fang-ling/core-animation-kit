@@ -177,6 +177,24 @@ C_ASSUME_NONNULL_BEGIN
   [superlayer layout];
 }
 
+- (void)addSublayer:(CoreAnimationLayer*)layer {
+  if (self.sublayers == nil) {
+    self.sublayers = [FoundationMutableArray makeArray];
+  }
+
+  if (layer.superlayer != self) {
+    [layer removeFromSuperlayer];
+  }
+
+  [self.sublayers appendObject:layer];
+
+  [JavaScriptCoreContext addSubnode:layer.contents forNode:self.contents];
+
+  layer.superlayer = self;
+
+  self.needsLayout = yes;
+}
+
 - (void)removeFromSuperlayer {
   if (self.superlayer == nil) {
     return;
@@ -195,7 +213,7 @@ C_ASSUME_NONNULL_BEGIN
   self.superlayer = nil;
 }
 
-- (void)addSublayer:(CoreAnimationLayer*)layer {
+- (void)insertSublayer:(CoreAnimationLayer*)layer atIndex:(CInteger)index {
   if (self.sublayers == nil) {
     self.sublayers = [FoundationMutableArray makeArray];
   }
@@ -204,9 +222,11 @@ C_ASSUME_NONNULL_BEGIN
     [layer removeFromSuperlayer];
   }
 
-  [self.sublayers appendObject:layer];
+  [self.sublayers insertObject:layer atIndex:index];
 
-  [JavaScriptCoreContext addSubnode:layer.contents forNode:self.contents];
+  [JavaScriptCoreContext insertSubnode:layer.contents
+                               atIndex:index
+                               forNode:self.contents];
 
   layer.superlayer = self;
 
