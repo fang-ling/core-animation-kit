@@ -1,8 +1,8 @@
 /*
- *  CoreAnimationKit.h
+ *  CoreAnimationImageLayer.m
  *  core-animation-kit
  *
- *  Created by Fang Ling on 2026/5/3.
+ *  Created by Fang Ling on 2026/7/5.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,16 +17,24 @@
  *  limitations under the License.
  */
 
-#ifndef CoreAnimationKit_h
-#define CoreAnimationKit_h
+#import "CoreAnimationImageLayer.h"
 
-#import "../../CoreAnimationButtonLayer.h"
-#import "../../CoreAnimationDivisionLayer.h"
-#import "../../CoreAnimationImageLayer.h"
-#import "../../CoreAnimationLayer.h"
-#import "../../CoreAnimationLayerDelegate.h"
-#import "../../CoreAnimationParagraphLayer.h"
-#import "../../CoreAnimationSpanLayer.h"
-#import "../../CoreAnimationTransaction.h"
+#import <JavaScriptCoreKit/JavaScriptCoreKit.h>
 
-#endif /* CoreAnimationKit_h */
+C_ASSUME_NONNULL_BEGIN
+
+@implementation CoreAnimationImageLayer
+
+- (instancetype)init {
+  if (!(self = [super init])) {
+    return nil;
+  }
+
+  self.contents = [JavaScriptCoreContext makeImageNode];
+
+  return self;
+}
+
+@end
+
+C_ASSUME_NONNULL_END
