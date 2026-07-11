@@ -136,8 +136,7 @@ C_ASSUME_NONNULL_BEGIN
     [self display];
   }
 
-  for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
+  for (CoreAnimationLayer* sublayer in self.sublayers) {
     [sublayer displayIfNeeded];
   }
 }
@@ -153,8 +152,7 @@ C_ASSUME_NONNULL_BEGIN
     self.needsLayout = no;
   }
 
-  for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
+  for (CoreAnimationLayer* sublayer in self.sublayers) {
     [sublayer layout];
   }
 }
