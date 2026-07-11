@@ -22,6 +22,7 @@
 #import <CKit/CKit.h>
 #import <CoreFoundationKit/CoreFoundationKit.h>
 #import <FoundationKit/FoundationKit.h>
+#import <JavaScriptCoreKit/JavaScriptCoreKit.h>
 #import <ObjectiveCKit/ObjectiveCKit.h>
 
 C_ASSUME_NONNULL_BEGIN
@@ -67,7 +68,7 @@ C_ASSUME_NONNULL_BEGIN
  */
 @interface CoreAnimationLayer: ObjectiveCObject
 
-@property (nonatomic) CUnsignedInteger32 contents;
+@property (nonatomic) JavaScriptCoreNode* contents;
 
 @property (nonatomic, weak)
   ObjectiveCAnyObject<CoreAnimationLayerDelegate> delegate;

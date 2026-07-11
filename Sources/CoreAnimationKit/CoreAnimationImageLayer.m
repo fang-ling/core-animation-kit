@@ -30,7 +30,8 @@ C_ASSUME_NONNULL_BEGIN
     return nil;
   }
 
-  self.contents = [JavaScriptCoreContext makeImageNode];
+  self.contents =
+    [[JavaScriptCoreNode alloc] initWithType:kJavaScriptCoreNodeTypeImage];
 
   return self;
 }

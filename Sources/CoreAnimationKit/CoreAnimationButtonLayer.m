@@ -30,7 +30,8 @@ C_ASSUME_NONNULL_BEGIN
     return nil;
   }
 
-  self.contents = [JavaScriptCoreContext makeButtonNode];
+  self.contents =
+    [[JavaScriptCoreNode alloc] initWithType:kJavaScriptCoreNodeTypeButton];
 
   return self;
 }
