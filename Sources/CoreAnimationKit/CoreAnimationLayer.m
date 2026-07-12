@@ -19,8 +19,6 @@
 
 #import "CoreAnimationLayer.h"
 
-#import <JavaScriptCoreKit/JavaScriptCoreKit.h>
-
 C_ASSUME_NONNULL_BEGIN
 
 @interface CoreAnimationLayer()
@@ -37,8 +35,6 @@ C_ASSUME_NONNULL_BEGIN
   if (!(self = [super init])) {
     return nil;
   }
-
-  self.contents = -1;
 
   self.masksToBounds = no;
   self.cornerRadius = 0.0;
@@ -136,8 +132,7 @@ C_ASSUME_NONNULL_BEGIN
     [self display];
   }
 
-  for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
+  for (CoreAnimationLayer* sublayer in self.sublayers) {
     [sublayer displayIfNeeded];
   }
 }
@@ -153,8 +148,7 @@ C_ASSUME_NONNULL_BEGIN
     self.needsLayout = no;
   }
 
-  for (let i = 0; i < self.sublayers.count; i += 1) {
-    let sublayer = (CoreAnimationLayer*)[self.sublayers objectAtIndex:i];
+  for (CoreAnimationLayer* sublayer in self.sublayers) {
     [sublayer layout];
   }
 }
@@ -188,7 +182,7 @@ C_ASSUME_NONNULL_BEGIN
 
   [self.sublayers appendObject:layer];
 
-  [JavaScriptCoreContext addSubnode:layer.contents forNode:self.contents];
+  [self.contents addSubnode:layer.contents];
 
   layer.superlayer = self;
 
@@ -205,8 +199,7 @@ C_ASSUME_NONNULL_BEGIN
     return [object isEqual:self];
   }];
 
-  [JavaScriptCoreContext removeFromSupernode:self.superlayer.contents
-                                     forNode:self.contents];
+  [self.contents removeFromSupernode];
 
   self.superlayer.needsLayout = yes;
   self.superlayer.needsDisplay = yes;
@@ -224,9 +217,7 @@ C_ASSUME_NONNULL_BEGIN
 
   [self.sublayers insertObject:layer atIndex:index];
 
-  [JavaScriptCoreContext insertSubnode:layer.contents
-                               atIndex:index
-                               forNode:self.contents];
+  [self.contents insertSubnode:layer.contents atIndex:index];
 
   layer.superlayer = self;
 

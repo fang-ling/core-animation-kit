@@ -30,7 +30,8 @@ C_ASSUME_NONNULL_BEGIN
     return nil;
   }
 
-  self.contents = [JavaScriptCoreContext makeDivisionNode];
+  self.contents =
+    [[JavaScriptCoreNode alloc] initWithType:kJavaScriptCoreNodeTypeDivision];
 
   return self;
 }
