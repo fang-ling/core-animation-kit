@@ -34,7 +34,7 @@ let package = Package(
   products: [
     .library(name: "CoreAnimationKit", targets: ["CoreAnimationKit"])
   ],
-  dependencies: dependencies.map{ isDevelopment ? .package(path: "../\($0.0)") : .package(url: "https://github.com/fang-ling/\($0.0)", branch: $0.2) },
+  dependencies: dependencies.map { isDevelopment ? .package(path: "../\($0.0)") : .package(url: "https://github.com/fang-ling/\($0.0)", branch: $0.2) },
   targets: [
     .target(
       name: "CoreAnimationKit",
