@@ -81,12 +81,13 @@ import JavaScriptCoreKit
 /// - ``layoutIfNeeded()``
 /// - ``layoutSublayers()``
 /// - ``needsLayout``
+@MainActor
 open class CoreAnimationLayer {
   internal class var _viewElementClass: JavaScriptCoreViewElement.Type {
     return JavaScriptCoreViewElement.self
   }
 
-  private var _viewElement: JavaScriptCoreViewElement
+  public var _viewElement: JavaScriptCoreViewElement
 
   /// The layer's delegate object.
   ///
