@@ -14,3 +14,7 @@ most of the work to dedicated graphics hardware.
 
 - ``CoreAnimationLayer``
 - ``CoreAnimationLayerDelegate``
+
+### Animation Groups
+
+- ``CoreAnimationTransaction``
