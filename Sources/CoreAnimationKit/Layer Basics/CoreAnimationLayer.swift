@@ -304,6 +304,10 @@ open class CoreAnimationLayer {
       layer.removeFromSuperlayer()
     }
 
+    if self.sublayers == nil {
+      self.sublayers = []
+    }
+
     self.sublayers?.insert(layer, at: index)
 
     self._viewElement.insertSubviewElement(layer._viewElement, at: index)
