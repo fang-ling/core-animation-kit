@@ -18,8 +18,8 @@
 
 import CKit
 import CoreGraphicsKit
-import FoundationKit
 import JavaScriptCoreKit
+import SwiftFramework
 
 /// An object that manages DOM-based content and allows you to perform animations on that content.
 ///
@@ -209,7 +209,7 @@ open class CoreAnimationLayer {
   ///
   /// When setting the ``sublayers`` property to an array populated with layer objects, each layer in the array must not already have a superlayer—that is, its ``superlayer`` property must currently
   /// be `nil`.
-  public var sublayers: FoundationArray<CoreAnimationLayer>?
+  public var sublayers: SwiftArray<CoreAnimationLayer>?
 
   /// The superlayer of the layer.
   ///

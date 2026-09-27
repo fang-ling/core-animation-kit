@@ -25,8 +25,8 @@ let isDevelopment = false
 let dependencies = [
   ("c-kit", "CKit", "main"),
   ("core-graphics-kit", "CoreGraphicsKit", "main"),
-  ("foundation-kit", "FoundationKit", "main"),
-  ("java-script-core-kit", "JavaScriptCoreKit", "main")
+  ("java-script-core-kit", "JavaScriptCoreKit", "main"),
+  ("swift-framework", "SwiftFramework", "main")
 ]
 
 let package = Package(
