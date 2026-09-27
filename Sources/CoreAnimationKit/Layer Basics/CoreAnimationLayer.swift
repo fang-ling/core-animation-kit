@@ -18,8 +18,8 @@
 
 import CKit
 import CoreGraphicsKit
-import FoundationKit
 import JavaScriptCoreKit
+import SwiftFramework
 
 /// An object that manages DOM-based content and allows you to perform animations on that content.
 ///
@@ -209,7 +209,7 @@ open class CoreAnimationLayer {
   ///
   /// When setting the ``sublayers`` property to an array populated with layer objects, each layer in the array must not already have a superlayer—that is, its ``superlayer`` property must currently
   /// be `nil`.
-  public var sublayers: FoundationArray<CoreAnimationLayer>?
+  public var sublayers: SwiftArray<CoreAnimationLayer>?
 
   /// The superlayer of the layer.
   ///
@@ -302,6 +302,10 @@ open class CoreAnimationLayer {
   public func insertSublayer(_ layer: CoreAnimationLayer, at index: CInteger) {
     if layer.superlayer !== self {
       layer.removeFromSuperlayer()
+    }
+
+    if self.sublayers == nil {
+      self.sublayers = []
     }
 
     self.sublayers?.insert(layer, at: index)
